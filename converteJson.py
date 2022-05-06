@@ -1,33 +1,9 @@
+from lib2to3.pytree import convert
 from tkinter import *
 import tkinter
 from tkinter import font
 from tkinter.scrolledtext import ScrolledText
-
-def convertJson(json):
-    texto = ''
-    isArray = False
-    for line in json.splitlines():
-        split = line.split(":")      
-        textoFormatado = split[0].replace(" ", "").replace('"', "")
-        if len(split) > 1:
-            valorFormatado = split[1].replace(" ", "")
-            if valorFormatado == '[' or valorFormatado == '{':
-                isArray = True
-                texto += "with vData.AddField('{}') do\nbegin\n".format(textoFormatado)
-                continue
-                
-        if textoFormatado == '],' or textoFormatado == '},':
-            isArray = False
-            texto += "end;\n".format(textoFormatado)
-            continue
-        
-        if len(textoFormatado) > 1 and not textoFormatado.endswith(','): 
-            if isArray:
-                texto += "   AddField('{}').value := nil; \n".format(textoFormatado)
-            else:
-                texto += "vData.AddField('{}').value := nil; \n".format(textoFormatado)
-    return texto       
-
+     
 class Application:
     def __init__(self, master=None):
         self.fontePadrao = ("Arial", "10")
@@ -76,29 +52,46 @@ class Application:
     def convertJson(self):
         json = self.json.get('0.0', tkinter.END)
         isArray = False
-        convertedJson = ''
+        isObject = False
+        convertedJson = "with vData do\nbegin\n"
         
         for line in json.splitlines():
             split = line.split(":")      
-            formattedText = split[0].replace(" ", "").replace('"', "")
+            # formattedText = split[0].replace(" ", "").replace(" ","").replace('"', "") 
+            formattedText = split[0].strip().replace('"', "") 
+            
             if len(split) > 1:
-                formattedValue = split[1].replace(" ", "")
-                if formattedValue == '[' or formattedValue == '{':
+                formattedValue = split[1].strip().replace('"', "")
+                if formattedValue == '[':
                     isArray = True
-                    convertedJson += "with vData.AddField('{}') do\nbegin\n".format(formattedText)
+                    convertedJson += "   with AddItem('{}') do\n   begin\n".format(formattedText)
                     continue
+            
+            if formattedText == '{':
+                isObject = True
+                # if isArray and isObject:
+                #     convertedJson += "      with AddField('{}') do\n      begin\n".format(formattedText)
+                # else:
+                #     convertedJson += "   with AddField('{}') do\n   begin\n".format(formattedText)
+                continue
                     
-            if formattedText == '],' or formattedText == '},':
+            if formattedText == '],':
                 isArray = False
-                convertedJson += "end;\n".format(formattedText)
+                convertedJson += "   end;\n".format(formattedText)
+                continue
+            
+            if formattedText == '},' or formattedText == '}':
+                isObject = False
+                # convertedJson += "      end;\n".format(formattedText)
                 continue
             
             if len(formattedText) > 1 and not formattedText.endswith(','): 
-                if isArray:
-                    convertedJson += "   AddField('{}').value := nil; \n".format(formattedText)
+                if isArray and isObject:
+                    convertedJson += "      AddField('{}').value := nil; \n".format(formattedText)
                 else:
-                    convertedJson += "vData.AddField('{}').value := nil; \n".format(formattedText)
-                    
+                    convertedJson += "   AddField('{}').value := nil; \n".format(formattedText)
+          
+        convertedJson += "end;\n"            
         self.convertido.delete('0.0', tkinter.END)
         self.convertido.insert('0.0', convertedJson)
 
