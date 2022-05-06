@@ -70,6 +70,8 @@ class Application:
                 continue
             
             if formattedText == '},' or formattedText == '}':
+                if isObject and not isArray:
+                    convertedJson += "   end;\n".format(formattedText)
                 isObject = False
                 continue
             
@@ -79,9 +81,14 @@ class Application:
                     isArray = True
                     convertedJson += "   with AddItem('{}') do\n   begin\n".format(formattedText)
                     continue
+                
+                if formattedValue == '{':
+                    isObject = True
+                    convertedJson += "   with AddField('{}') do\n   begin\n".format(formattedText)
+                    continue
             
                 if len(formattedText) > 1 and not formattedText.endswith(','): 
-                    if isArray and isObject:
+                    if isArray or isObject:
                         convertedJson += "      AddField('{}').value := nil; \n".format(formattedText)
                     else:
                         convertedJson += "   AddField('{}').value := nil; \n".format(formattedText)
