@@ -67,17 +67,40 @@ class Application:
         self.converter["text"] = "Converter"
         self.converter["font"] = self.fontePadrao
         self.converter["width"] = 12
-        self.converter["command"] = self.converteJson
+        self.converter["command"] = self.convertJson
         self.converter.pack()
 
         self.mensagem = Label(self.terceiroContainer, text="", font=self.fontePadrao)
         self.mensagem.pack()
-
-    def converteJson(self):
+        
+    def convertJson(self):
         json = self.json.get('0.0', tkinter.END)
-        jsonConvertido = convertJson(json)
+        isArray = False
+        convertedJson = ''
+        
+        for line in json.splitlines():
+            split = line.split(":")      
+            formattedText = split[0].replace(" ", "").replace('"', "")
+            if len(split) > 1:
+                formattedValue = split[1].replace(" ", "")
+                if formattedValue == '[' or formattedValue == '{':
+                    isArray = True
+                    convertedJson += "with vData.AddField('{}') do\nbegin\n".format(formattedText)
+                    continue
+                    
+            if formattedText == '],' or formattedText == '},':
+                isArray = False
+                convertedJson += "end;\n".format(formattedText)
+                continue
+            
+            if len(formattedText) > 1 and not formattedText.endswith(','): 
+                if isArray:
+                    convertedJson += "   AddField('{}').value := nil; \n".format(formattedText)
+                else:
+                    convertedJson += "vData.AddField('{}').value := nil; \n".format(formattedText)
+                    
         self.convertido.delete('0.0', tkinter.END)
-        self.convertido.insert('0.0', jsonConvertido)
+        self.convertido.insert('0.0', convertedJson)
 
 root = Tk()
 Application(root)
