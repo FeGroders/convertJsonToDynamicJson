@@ -1,7 +1,6 @@
 from lib2to3.pytree import convert
 from tkinter import *
 import tkinter
-from tkinter import font
 from tkinter.scrolledtext import ScrolledText
      
 class Application:
@@ -62,14 +61,12 @@ class Application:
                         
             if formattedText == '{':
                 isObject = True
-                continue
-                    
-            if formattedText == '],':
+                continue        
+            elif formattedText == '],' or formattedText == ']':
                 isArray = False
                 convertedJson += "   end;\n".format(formattedText)
                 continue
-            
-            if formattedText == '},' or formattedText == '}':
+            elif formattedText == '},' or formattedText == '}':
                 if isObject and not isArray:
                     convertedJson += "   end;\n".format(formattedText)
                 isObject = False
@@ -80,14 +77,10 @@ class Application:
                 if formattedValue == '[':
                     isArray = True
                     convertedJson += "   with AddItem('{}') do\n   begin\n".format(formattedText)
-                    continue
-                
-                if formattedValue == '{':
+                elif formattedValue == '{':
                     isObject = True
                     convertedJson += "   with AddField('{}') do\n   begin\n".format(formattedText)
-                    continue
-            
-                if len(formattedText) > 1 and not formattedText.endswith(','): 
+                elif len(formattedText) > 1 and not formattedText.endswith(','): 
                     if isArray or isObject:
                         convertedJson += "      AddField('{}').value := nil; \n".format(formattedText)
                     else:
