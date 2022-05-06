@@ -59,20 +59,9 @@ class Application:
             split = line.split(":")      
             # formattedText = split[0].replace(" ", "").replace(" ","").replace('"', "") 
             formattedText = split[0].strip().replace('"', "") 
-            
-            if len(split) > 1:
-                formattedValue = split[1].strip().replace('"', "")
-                if formattedValue == '[':
-                    isArray = True
-                    convertedJson += "   with AddItem('{}') do\n   begin\n".format(formattedText)
-                    continue
-            
+                        
             if formattedText == '{':
                 isObject = True
-                # if isArray and isObject:
-                #     convertedJson += "      with AddField('{}') do\n      begin\n".format(formattedText)
-                # else:
-                #     convertedJson += "   with AddField('{}') do\n   begin\n".format(formattedText)
                 continue
                     
             if formattedText == '],':
@@ -82,14 +71,20 @@ class Application:
             
             if formattedText == '},' or formattedText == '}':
                 isObject = False
-                # convertedJson += "      end;\n".format(formattedText)
                 continue
             
-            if len(formattedText) > 1 and not formattedText.endswith(','): 
-                if isArray and isObject:
-                    convertedJson += "      AddField('{}').value := nil; \n".format(formattedText)
-                else:
-                    convertedJson += "   AddField('{}').value := nil; \n".format(formattedText)
+            if len(split) > 1:
+                formattedValue = split[1].strip().replace('"', "")
+                if formattedValue == '[':
+                    isArray = True
+                    convertedJson += "   with AddItem('{}') do\n   begin\n".format(formattedText)
+                    continue
+            
+                if len(formattedText) > 1 and not formattedText.endswith(','): 
+                    if isArray and isObject:
+                        convertedJson += "      AddField('{}').value := nil; \n".format(formattedText)
+                    else:
+                        convertedJson += "   AddField('{}').value := nil; \n".format(formattedText)
           
         convertedJson += "end;\n"            
         self.convertido.delete('0.0', tkinter.END)
